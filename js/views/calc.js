@@ -4,7 +4,7 @@ import {
 } from '../calc.js';
 import { editPrinter } from '../forms.js';
 import * as store from '../store.js';
-import { ICONS, clear, field, h, numField, pickDialog } from '../ui.js';
+import { ICONS, clear, field, h, numField, pickDialog, shareText } from '../ui.js';
 
 const DRAFT_KEY = 'calc-draft';
 
@@ -200,7 +200,17 @@ export function render(root) {
     clear(totalBar,
       h('div', { class: 'total-bar-text' },
         h('small', { text: `${qty} шт × ${formatMoney(price)}` }),
-        h('b', { text: formatMoney(total) })));
+        h('b', { text: formatMoney(total) })),
+      h('button', { class: 'btn primary', html: ICONS.share + 'Поделиться', disabled: !(input.weight_g > 0),
+                    onclick: () => shareText(shareMessage(qty, price, total)) }));
+  }
+
+  // Текст для заказчика: только цена — без себестоимости и прибыли.
+  function shareMessage(qty, price, total) {
+    return ['Расчёт 3D-печати',
+            `Количество: ${qty} шт`,
+            `Цена за 1 шт: ${formatMoney(price)}`,
+            `Итого: ${formatMoney(total)}`].join('\n');
   }
 
   function update() {

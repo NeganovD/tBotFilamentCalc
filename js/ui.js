@@ -209,6 +209,30 @@ export function toast(text) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
 }
 
+// --- поделиться ---
+
+/** В Telegram — выбор чата для отправки текста, в браузере — системное «Поделиться» или буфер обмена. */
+export async function shareText(text) {
+  if (tg?.initData) {
+    tg.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(text));
+    return;
+  }
+  if (navigator.share) {
+    try {
+      await navigator.share({ text });
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('Расчёт скопирован');
+  } catch {
+    alertDialog('Поделиться', text);
+  }
+}
+
 // --- иконки (inline SVG, stroke = currentColor) ---
 
 const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -221,5 +245,6 @@ export const ICONS = {
   plus: svg('<path d="M12 5v14M5 12h14"/>'),
   chevron: svg('<path d="m9 18 6-6-6-6"/>'),
   printer: svg('<path d="M4 4h16v16H4z"/><path d="M4 8h16M9 8v4h6V8M8 20v-4h8v4"/>'),
+  share: svg('<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/>'),
   trash: svg('<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>'),
 };
