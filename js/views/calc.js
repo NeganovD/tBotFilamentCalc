@@ -4,7 +4,7 @@ import {
 } from '../calc.js';
 import { editPrinter } from '../forms.js';
 import * as store from '../store.js';
-import { ICONS, clear, field, h, numField, pickDialog, shareText } from '../ui.js';
+import { ICONS, clear, confirmDialog, field, h, numField, pickDialog, shareText } from '../ui.js';
 
 const DRAFT_KEY = 'calc-draft';
 
@@ -18,16 +18,18 @@ const BREAKDOWN_ROWS = [
   ['extra', 'Доп. расходы'],
 ];
 
+// defect и waste: null — взять из настроек.
+const DRAFT_DEFAULTS = { printer_id: null, filament_price: 0, qty: 1, parts: 1, weight: 0, hours: 0, minutes: 0,
+                         defect: null, waste: null, labor: 0, extra: 0 };
+
 // Черновик расчёта живёт между переключениями вкладок и перезапусками (только на этом устройстве).
 let draft = loadDraft();
 
 function loadDraft() {
-  const defaults = { printer_id: null, filament_price: 0, qty: 1, parts: 1, weight: 0, hours: 0, minutes: 0,
-                     defect: null, waste: null, labor: 0, extra: 0 };
   try {
-    return { ...defaults, ...JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}') };
+    return { ...DRAFT_DEFAULTS, ...JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}') };
   } catch {
-    return defaults;
+    return { ...DRAFT_DEFAULTS };
   }
 }
 
@@ -105,8 +107,18 @@ export function render(root) {
     h('h2', { text: '2. Филамент' }),
     field('Стоимость катушки за 1 кг', inputs.filament_price));
   const platesInfo = h('div', { class: 'plates-info' });
+  // Новый расчёт: принтер и цена за кг остаются — обычно они те же.
+  async function newCalc() {
+    if (!await confirmDialog('Новый расчёт', 'Очистить параметры заказа и печати?\nПринтер и цена филамента останутся.', { ok: 'Очистить' })) return;
+    draft = { ...DRAFT_DEFAULTS, printer_id: draft.printer_id, filament_price: draft.filament_price };
+    saveDraft();
+    render(root);
+    window.scrollTo(0, 0);
+  }
   const paramsCard = h('section', { class: 'card' },
-    h('h2', { text: '3. Заказ и печать' }),
+    h('div', { class: 'card-head' },
+      h('h2', { text: '3. Заказ и печать' }),
+      h('button', { class: 'btn small', html: ICONS.plus + 'Новый расчёт', onclick: newCalc })),
     h('div', { class: 'grid2' },
       field('Нужно напечатать', inputs.qty, 'весь заказ'),
       field('Помещается на стол', inputs.parts, 'для этого стола — вес и время')),

@@ -130,6 +130,8 @@ svg { width: 20px; height: 20px; flex: none; }
   margin-bottom: 12px;
 }
 .card h2 { font-size: 17px; margin-bottom: 10px; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.card-head h2 { margin-bottom: 0; }
 .card.disabled { opacity: .5; pointer-events: none; }
 
 .calc-grid, .settings-grid { display: grid; gap: 0 16px; }
